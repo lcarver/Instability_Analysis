@@ -26,29 +26,23 @@ rect = fig.patch
 rect.set_facecolor('white')
 ax1 = fig.add_subplot(111)
 
-sus_filename = '{:s}/{:s}_Sussix.h5'.format(output_path,beam)
+tbt_filename = '{:s}/TBT_{:s}.h5'.format(output_path,beam)
 
-f = h5py.File(sus_filename,'r')
-sus_h = f['Horizontal'][:]
-sus_v = f['Vertical'][:]
+f = h5py.File(tbt_filename,'r')
+tbt_h = f['horizontal'][:]
+tbt_v = f['vertical'][:]
 time = f.attrs['Start_Time']
-turn_step = f.attrs['Turn_Step']
-modes = f.attrs['Modes']
 f.close()
 
-
-turns = np.arange(0,len(sus_h)*turn_step,turn_step)
 if plane=='H':
-  dat = sus_h[:,mode_to_fit + 2]
-elif plane=='V':
-  dat = sus_v[:,mode_to_fit + 2]
-dat = dat/np.amax(dat)
-datmask = dat > 0.05
+  dat = tbt_h
+else:
+  dat = tbt_v
 
-dat=dat[datmask]
-turndat = turns[datmask]/(11000*60.)
+turns = np.arange(0,len(dat),1)
+turndat = turns/(11000*60.)
 
-ax1.plot(turndat,dat,color='r',linestyle='',marker='o',alpha=0.2,label=r'$\mathrm{{Sussix\ Mode\ }} {:d}$'.format(mode_to_fit))
+ax1.plot(turndat,dat,color='r',linestyle='',marker='o',alpha=0.2,label=r'$\mathrm{{Sussix\ Mode\ }}$')
 
 
 #ax1.plot(turndat,dat,'ro')
@@ -59,11 +53,18 @@ ax1.plot(turndat,dat,color='r',linestyle='',marker='o',alpha=0.2,label=r'$\mathr
 
 timelow=0
 timehigh=1
+turn_step = 1000
+
+####MAKE FUNCTION THAT CALCULATES THE ENVELOPE
+
 
 turnmask = ((turndat > timelow) & (turndat < timehigh))
 
 dat=dat[turnmask]
 turndat=turndat[turnmask]
+
+
+
 
 def fit_exp(tfit,afit):
   guess_tau=0.25
@@ -88,7 +89,6 @@ ax1.plot(turndat,est_off + est_amp*np.exp(est_tau*turndat - est_phase),'b--',lin
 ax1.set_xlabel('Time [minutes]')
 ax1.set_ylabel('Amplitude')
 ax1.legend(loc=2)
-ax1.set_ylim(0,1.1)
 fig.suptitle('{:s}{:s} Sussix Mode Growth'.format(beam,plane),fontsize=18)
 #plot_fit()
 plt.show()

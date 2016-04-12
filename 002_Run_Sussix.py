@@ -67,10 +67,10 @@ def sort_SX(SX,plane):
 
 
 
-filln = 4761
-beam = 'B2'
+filln = 4769
+beam = 'B1'
 
-output_path = '{:d}/ACQ_HS'.format(filln)
+output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}'.format(filln)
 
 tbt_filename = '{:s}/TBT_{:s}.h5'.format(output_path,beam)
 
