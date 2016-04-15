@@ -11,7 +11,7 @@ def plot_waterfall(axes,data_set,turn_split):
   tune_dat = np.fft.rfftfreq(len(data_set_new[0]))
 
   fft_spectra = np.asarray([np.fft.rfft(data) for data in data_set_new])
-  fft_spectra = np.abs(np.abs(fft_spectra) - np.abs(fft_spectra[0]))
+  fft_spectra = np.abs(np.abs(fft_spectra))
   x = tune_dat
   y = np.arange(0,len(data_set),turn_split)
 
@@ -22,7 +22,7 @@ def plot_waterfall(axes,data_set,turn_split):
 
 
 
-filln = 4769
+filln = 4786
 output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}/'.format(filln)
 
 

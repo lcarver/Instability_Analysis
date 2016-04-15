@@ -5,15 +5,15 @@ import h5py
 
 
 mdb = pytimber.LoggingDB(source='mdb')
-t1 = '2016-04-07 07:59:00.000'
-t2 = '2016-04-07 08:00:20.000'
+t1 = '2016-04-11 08:08:00.000'
+t2 = '2016-04-11 08:12:20.000'
 
 #fills = mdb.get('HX:FILLN',t1,t2)
 #filln = int(fills['HX:FILLN'][1][-1])
-filln=4769
+filln=4786
 print 'Fill number = {:d}'.format(filln)
 
-output_path = os.path.join('/afs/cern.ch/work/l/lcarver/public/Instability_Data','{:d}'.format(filln))
+output_path = os.path.join('/afs/cern.ch/work/l/lcarver/public/Instability_Data','{:d}_Coup'.format(filln))
 
 if not os.path.exists(output_path):
   os.mkdir(output_path)

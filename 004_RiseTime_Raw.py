@@ -15,9 +15,7 @@ import PySUSSIX
 filln = 4769
 beam = 'B2'
 plane = 'H'
-mode_to_fit = -2
 output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}'.format(filln)
-
 
 
 
@@ -40,9 +38,9 @@ else:
   dat = tbt_v
 
 turns = np.arange(0,len(dat),1)
-turndat = turns/(11000*60.)
+turndat = turns
 
-ax1.plot(turndat,dat,color='r',linestyle='',marker='o',alpha=0.2,label=r'$\mathrm{{Sussix\ Mode\ }}$')
+#ax1.plot(turndat[::2],dat[::2],color='r',linestyle='',marker='o',alpha=0.2,label=r'$\mathrm{{Sussix\ Mode\ }}$')
 
 
 #ax1.plot(turndat,dat,'ro')
@@ -51,39 +49,64 @@ ax1.plot(turndat,dat,color='r',linestyle='',marker='o',alpha=0.2,label=r'$\mathr
 #timelow = 15.5
 #timehigh = 16.9
 
-timelow=0
-timehigh=1
-turn_step = 1000
+
 
 ####MAKE FUNCTION THAT CALCULATES THE ENVELOPE
+def envelope(dat):
+  steps = 2000
+  num_of_steps = np.floor(len(dat)/steps)
+  max_vals = np.zeros((num_of_steps))
+  turn_vals = np.zeros((num_of_steps))
 
+  for i in np.arange(0,num_of_steps-1):
+    max_val = np.amax(np.abs(dat)[i*steps:(i+1)*steps])
+    max_vals[i] = max_val
 
-turnmask = ((turndat > timelow) & (turndat < timehigh))
+    turn_val = steps*i + steps/2
+    turn_vals[i] = turn_val
 
-dat=dat[turnmask]
-turndat=turndat[turnmask]
+    turn_vals = turn_vals
+    mask = turn_vals > 0
+  
+
+  return turn_vals[mask], max_vals[mask]
+
+turn_vals, max_vals = envelope(dat)
+turn_vals = turn_vals/(11000.*60.)
+max_vals = max_vals/1e9
+
+ax1.plot(turn_vals,max_vals,'go')
+
+timelow=0.5
+timehigh=0.7
+
+turnmask = ((turn_vals > timelow) & (turn_vals < timehigh))
+
+fit_dat = max_vals[turnmask]
+fit_turn = turn_vals[turnmask]
 
 
 
 
 def fit_exp(tfit,afit):
-  guess_tau=0.25
-  guess_off=0.2
+  guess_tau=0.2
+  guess_off=0.
   guess_amp = 0.05
-  guess_phase = -0.
+  guess_phase = 1.3
 
-  data_first_guess = guess_off + guess_amp*np.exp(guess_tau * tfit - guess_phase)
+  data_first_guess = guess_off + guess_amp*np.exp(tfit/guess_tau - guess_phase)
 
-  optimise_func = lambda x: x[0] + x[1]*np.exp(x[2]*tfit - x[3]) - afit
+  optimise_func = lambda x: x[0] + x[1]*np.exp(tfit/x[2] - x[3]) - afit
 
   est_off, est_amp, est_tau, est_phase = leastsq(optimise_func,[guess_off, guess_amp, guess_tau, guess_phase])[0]
   return [est_off, est_amp, est_tau, est_phase]
 
 [est_off,est_amp,est_tau, est_phase] = fit_exp(turndat,dat)
 #[est_off,est_amp,est_tau] = [1,15/60,1]
+print est_off, est_amp, est_tau, est_phase
 
-
-ax1.plot(turndat,est_off + est_amp*np.exp(est_tau*turndat - est_phase),'b--',linewidth=2.,label=r'$\mathrm{{Numerical\ Fit}}\ \tau={:g}\mathrm{{\ s}}$'.format(60/est_tau))
+time_plot = np.arange(0,1,0.1)
+ax1.plot(time_plot,est_off + est_amp*np.exp(time_plot/est_tau - est_phase),'r',linewidth=3.,label=r'$\mathrm{{Numerical\ Fit}}\ \tau={:g}\mathrm{{\ s}}$'.format(est_tau*60))
 
 #ax1.plot(turndat, coef[0]*turndat + coef[1],'b--',label=r'$\mathrm{{Numerical\ Fit}}\ \tau={:g},\ C={:g}$'.format(coef[0],coef[1]))
 ax1.set_xlabel('Time [minutes]')
