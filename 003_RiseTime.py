@@ -26,7 +26,7 @@ rect = fig.patch
 rect.set_facecolor('white')
 ax1 = fig.add_subplot(111)
 
-sus_filename = '{:s}/{:s}_Sussix.h5'.format(output_path,beam)
+sus_filename = '{:s}/{:s}_Modes_Sussix.h5'.format(output_path,beam)
 
 f = h5py.File(sus_filename,'r')
 sus_h = f['Horizontal'][:]
