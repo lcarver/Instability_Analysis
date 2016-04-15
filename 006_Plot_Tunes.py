@@ -1,0 +1,76 @@
+#!/afs/cern.ch/user/p/pyhdtl/public/anaconda/bin/python
+from __future__ import division
+import os
+import numpy as np
+import scipy as sci
+import h5py
+import matplotlib.pyplot as plt
+import glob as glob
+import re
+import mystyle as ms
+import PySUSSIX
+
+
+filln = 4769
+tag = 'Crossing_2'
+beam = 'B1'
+
+output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}_{:s}'.format(filln,tag)
+
+sus_filename = '{:s}/{:s}_Sussix_Tunes.h5'.format(output_path,beam)
+
+f = h5py.File(sus_filename,'r')
+turn_split = f.attrs['Turn_Split']
+sus_h = f['Horizontal']
+sus_v = f['Vertical']
+
+tune_h = sus_h['Peak_0']
+tune_v = sus_v['Peak_0']
+
+tune_h2 = np.zeros((len(tune_h),2))
+tune_v2 = np.zeros((len(tune_v),2))
+
+turns = turn_split*np.arange(0,len(tune_h)) + turn_split/2
+
+crossing_turn = 125000
+crossing_turn = 150000
+
+for j in np.arange(0,len(tune_h),1):
+  for i in np.arange(1,18,1):
+    peak = 'Peak_{:d}'.format(i)
+    if ((sus_h[peak][j][0] > 0.2) & (sus_h[peak][j][0] < 0.33)):
+        tune_h2[j] = sus_h[peak][j]
+    if ((sus_v[peak][j][0] > 0.2) & (sus_v[peak][j][0] < 0.33)):
+        tune_v2[j] = sus_v[peak][j]
+#    else:
+#        print 'No tune in window'
+
+
+f1001 = 0.5*np.arctan(np.sqrt((tune_h2[:,1]*tune_v2[:,1])/(tune_h[:,1]*tune_v[:,1])))
+Cminus = 4*np.abs(f1001)*np.abs(tune_v[:,0]-tune_h[:,0])
+
+
+fig = plt.figure(figsize=(8,6))
+rect = fig.patch
+rect.set_facecolor('white')
+ax1 = fig.add_subplot(111)
+ax2 = ax1.twinx()
+
+ax1.plot(0.28,'g-',label=r'$C^{{-}}$')
+ax1.plot(turns,tune_h[:,0],'ro',label=r'$Q_{{h}}$')
+ax1.plot(turns,tune_v[:,0],'bo',label=r'$Q_{{v}}$')
+ax1.legend(loc=1)
+
+turns_mask = turns > crossing_turn
+#ax2.plot(turns[turns_mask],Cminus[turns_mask],'g-',label=r'$C^{{-}}$')
+
+
+plt.show()
+
+f.close()
+
+
+
+
+
+
