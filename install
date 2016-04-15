@@ -1,0 +1,5 @@
+cd PySUSSIX
+./install
+cd ../pytimber 
+python setup.py install
+cd ..
