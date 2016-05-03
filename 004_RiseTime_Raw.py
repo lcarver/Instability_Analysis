@@ -12,10 +12,10 @@ import PySUSSIX
 
 
 
-filln = 4769
-beam = 'B2'
+filln = 4804
+beam = 'B1'
 plane = 'H'
-output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}'.format(filln)
+output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}_Inst'.format(filln)
 
 
 
@@ -53,7 +53,7 @@ turndat = turns
 
 ####MAKE FUNCTION THAT CALCULATES THE ENVELOPE
 def envelope(dat):
-  steps = 2000
+  steps = 30000
   num_of_steps = np.floor(len(dat)/steps)
   max_vals = np.zeros((num_of_steps))
   turn_vals = np.zeros((num_of_steps))
@@ -73,12 +73,14 @@ def envelope(dat):
 
 turn_vals, max_vals = envelope(dat)
 turn_vals = turn_vals/(11000.*60.)
-max_vals = max_vals/1e9
+max_vals = max_vals/np.amax(max_vals)
 
 ax1.plot(turn_vals,max_vals,'go')
 
-timelow=0.5
-timehigh=0.7
+timelow=1.0
+timehigh=1.5
+
+print('lll')
 
 turnmask = ((turn_vals > timelow) & (turn_vals < timehigh))
 
@@ -89,14 +91,14 @@ fit_turn = turn_vals[turnmask]
 
 
 def fit_exp(tfit,afit):
-  guess_tau=0.2
-  guess_off=0.
+  guess_tau=0.8
+  guess_off=0.1
   guess_amp = 0.05
-  guess_phase = 1.3
+  guess_phase = 0.
 
-  data_first_guess = guess_off + guess_amp*np.exp(tfit/guess_tau - guess_phase)
+  data_first_guess = guess_off + guess_amp*np.exp( tfit / guess_tau - guess_phase)
 
-  optimise_func = lambda x: x[0] + x[1]*np.exp(tfit/x[2] - x[3]) - afit
+  optimise_func = lambda x: x[0] + x[1]*np.exp(x[2]*tfit - x[3]) - afit
 
   est_off, est_amp, est_tau, est_phase = leastsq(optimise_func,[guess_off, guess_amp, guess_tau, guess_phase])[0]
   return [est_off, est_amp, est_tau, est_phase]
@@ -105,7 +107,7 @@ def fit_exp(tfit,afit):
 #[est_off,est_amp,est_tau] = [1,15/60,1]
 print est_off, est_amp, est_tau, est_phase
 
-time_plot = np.arange(0,1,0.1)
+time_plot = np.arange(timelow,timehigh,0.1)
 ax1.plot(time_plot,est_off + est_amp*np.exp(time_plot/est_tau - est_phase),'r',linewidth=3.,label=r'$\mathrm{{Numerical\ Fit}}\ \tau={:g}\mathrm{{\ s}}$'.format(est_tau*60))
 
 #ax1.plot(turndat, coef[0]*turndat + coef[1],'b--',label=r'$\mathrm{{Numerical\ Fit}}\ \tau={:g},\ C={:g}$'.format(coef[0],coef[1]))
@@ -115,6 +117,9 @@ ax1.legend(loc=2)
 fig.suptitle('{:s}{:s} Sussix Mode Growth'.format(beam,plane),fontsize=18)
 #plot_fit()
 plt.show()
+
+#plt.semilogy(turn_vals,max_vals)
+#plt.show()
 
 
 

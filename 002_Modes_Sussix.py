@@ -31,7 +31,7 @@ def filter_SX(SX):
   SX.ay = SX.ay[mask_y]
 
 def sort_SX(SX,plane):
-  Qs = 2e-3
+  Qs = 4.e-3
   if plane=='x':
     q_ = SX.tunex
     peaks = SX.ox
@@ -44,15 +44,16 @@ def sort_SX(SX,plane):
   modes = {'Mode_0':[],'Mode_1':[],'Mode_-1':[],
            'Mode_2':[],'Mode_-2':[]}
 
-  for peak,amp in zip(peaks,amps):
-    i=-2
-    while i<2:
-     if q_ + i*Qs -Qs/2 < peak < q_ + i*Qs + Qs/2:
-       arr = modes['Mode_{:s}'.format(str(i))]
-       arr.append([peak,amp])
-       break 
-     else:
-       i+=1
+  i=-2
+  while i<2:
+    arr = modes['Mode_{:s}'.format(str(i))]
+    for peak,amp in zip(peaks,amps):
+      if q_ + i*Qs -Qs/2 < peak < q_ + i*Qs + Qs/2:
+        arr.append([peak,amp]) 
+      else:
+        pass
+    i = i + 1 
+
   all_modes = {}
   for key in modes.keys():
 
@@ -67,10 +68,10 @@ def sort_SX(SX,plane):
 
 
 
-filln = 4769
+filln = 4804
 beam = 'B1'
 
-output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}'.format(filln)
+output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}_Inst'.format(filln)
 
 tbt_filename = '{:s}/TBT_{:s}.h5'.format(output_path,beam)
 
@@ -80,7 +81,7 @@ tbt_v = f['vertical'][:]
 time = f.attrs['Start_Time']
 f.close()
 
-turn_split = 512*2
+turn_split = 512*16
 num_arr = int(np.floor(len(tbt_h)/turn_split))
 turn_num = num_arr*turn_split
 
@@ -93,7 +94,7 @@ full_dict_y = {'Mode_0':[],'Mode_1':[],'Mode_-1':[],
            'Mode_2':[],'Mode_-2':[]}
 
 for dat_h, dat_v in zip(data_h, data_v):
-  SX = calc_sussix_spectra(dat_h,dat_v,turn_split,0.28,0.31)
+  SX = calc_sussix_spectra(dat_h,dat_v,turn_split,0.280,0.31)
   filter_SX(SX)
   modes_x = sort_SX(SX,'x')
   modes_y = sort_SX(SX,'y')

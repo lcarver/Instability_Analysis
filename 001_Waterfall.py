@@ -6,14 +6,16 @@ import matplotlib.pyplot as plt
 import mystyle as ms
 
 def plot_waterfall(axes,data_set,turn_split):
-  data_set_new = np.split(data_set,len(data_set)/turn_split)
+
+  n_array = int(np.floor(len(data_set)/turn_split))
+  data_set_2 = data_set[:n_array*turn_split]
+  data_set_new = np.split(data_set_2, n_array)
 
   tune_dat = np.fft.rfftfreq(len(data_set_new[0]))
 
-  fft_spectra = np.asarray([np.fft.rfft(data) for data in data_set_new])
-  fft_spectra = np.abs(np.abs(fft_spectra))
+  fft_spectra = np.asarray([np.abs(np.fft.rfft(data)) for data in data_set_new])
   x = tune_dat
-  y = np.arange(0,len(data_set),turn_split)
+  y = np.arange(0,len(data_set_2),turn_split)
 
   xx,yy = np.meshgrid(x,y)
   zz = fft_spectra
@@ -22,8 +24,8 @@ def plot_waterfall(axes,data_set,turn_split):
 
 
 
-filln = 4786
-output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}/'.format(filln)
+filln = 4804
+output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}_Inst/'.format(filln)
 
 
 for beam in ['B1','B2']:
@@ -45,8 +47,8 @@ for beam in ['B1','B2']:
   time = f.attrs['Start_Time']
   f.close()
 
-  plot_waterfall(ax1,tbt_h/1e6,2048*4)
-  plot_waterfall(ax2,tbt_v/1e6,2048*4)
+  plot_waterfall(ax1, tbt_h/1e6, 2048*16)
+  plot_waterfall(ax2, tbt_v/1e6, 2048*16)
 
   ax1.set_ylabel('Turns')
 
@@ -54,13 +56,13 @@ for beam in ['B1','B2']:
   ax1.set_title('Horizontal Spectrum')
   ax2.set_title('Vertical Spectrum')
   ax2.set_xlabel('Tune')
-  ax1.set_xlim([0.26,0.3])
-  ax2.set_xlim([0.3,0.33])
+  ax1.set_xlim([0.26,0.33])
+  ax2.set_xlim([0.26,0.33])
   ax1.set_ylim([0,len(tbt_h)])
   ax2.set_ylim([0,len(tbt_h)])
 
   fig.suptitle('{:s} spectrum on {:s}'.format(beam,time),fontsize=18)
-  fig.savefig('{:s}{:s}_{:s}.png'.format(output_path,'Waterfall',beam))
+  fig.savefig('{:s}{:s}_{:s}.png'.format(output_path,beam, 'Waterfall'))
 
 plt.show()
 

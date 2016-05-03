@@ -12,11 +12,11 @@ import PySUSSIX
 
 
 
-filln = 4769
+filln = 4804
 beam = 'B2'
 plane = 'H'
 mode_to_fit = -2
-output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}'.format(filln)
+output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}_Inst'.format(filln)
 
 
 
@@ -42,6 +42,7 @@ if plane=='H':
   dat = sus_h[:,mode_to_fit + 2]
 elif plane=='V':
   dat = sus_v[:,mode_to_fit + 2]
+print dat
 dat = dat/np.amax(dat)
 datmask = dat > 0.05
 
@@ -58,7 +59,7 @@ ax1.plot(turndat,dat,color='r',linestyle='',marker='o',alpha=0.2,label=r'$\mathr
 #timehigh = 16.9
 
 timelow=0
-timehigh=1
+timehigh=1.5
 
 turnmask = ((turndat > timelow) & (turndat < timehigh))
 
@@ -89,7 +90,8 @@ ax1.set_xlabel('Time [minutes]')
 ax1.set_ylabel('Amplitude')
 ax1.legend(loc=2)
 ax1.set_ylim(0,1.1)
-fig.suptitle('{:s}{:s} Sussix Mode Growth'.format(beam,plane),fontsize=18)
+fig.suptitle('{:s}{:s} Sussix Mode Growth \n Start Time: {:s}'.format(beam, plane, time),fontsize=14)
+#fig.savefig('{:s}/{:s}{:s}_Mode_{:g}.png'.format(output_path,beam, plane, mode_to_fit))
 #plot_fit()
 plt.show()
 
