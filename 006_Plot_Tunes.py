@@ -8,14 +8,13 @@ import matplotlib.pyplot as plt
 import glob as glob
 import re
 import mystyle as ms
-import PySUSSIX
 
 
-filln = 4805
-tag = 'QDecrease'
-beam = 'B2'
+filln = 4927
+tag = ''
+beam = 'B1'
 
-output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}_{:s}'.format(filln,tag)
+output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}'.format(filln)
 
 sus_filename = '{:s}/{:s}_Sussix_Tunes.h5'.format(output_path,beam)
 
@@ -86,7 +85,7 @@ ax1.set_ylabel('Fractional Tune')
 ax1.legend(loc=1)
 #turns_mask = turns > crossing_turn
 #ax2.plot(turns[turns_mask],Cminus[turns_mask],'g-',label=r'$C^{{-}}$')
-plt.savefig('{:s}/Crossing.png'.format(output_path))
+#plt.savefig('{:s}/Crossing.png'.format(output_path))
 
 plt.show()
 

@@ -9,6 +9,10 @@ import glob as glob
 import re
 import mystyle as ms
 import PySUSSIX
+import config 
+
+cf = config.cf()
+print('Qx={:g}, Qy={:g}'.format(cf.q1, cf.q2))
 
 def calc_sussix_spectra(x, y, window_width, q_x, q_y, n_lines=50):
 
@@ -31,7 +35,7 @@ def filter_SX(SX):
   SX.ay = SX.ay[mask_y]
 
 def sort_SX(SX,plane):
-  Qs = 4.e-3
+  Qs = 2.e-3
   if plane=='x':
     q_ = SX.tunex
     peaks = SX.ox
@@ -68,62 +72,58 @@ def sort_SX(SX,plane):
 
 
 
-filln = 4804
-beam = 'B1'
+for beam in ['B1', 'B2']:
+  tbt_filename = '{:s}/TBT_{:s}.h5'.format(cf.output_path, beam)
 
-output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}_Inst'.format(filln)
+  f = h5py.File(tbt_filename,'r')
+  tbt_h = f['horizontal'][:]
+  tbt_v = f['vertical'][:]
+  time = f.attrs['Start_Time']
+  f.close()
 
-tbt_filename = '{:s}/TBT_{:s}.h5'.format(output_path,beam)
+  turn_split = 1024
+  num_arr = int(np.floor(len(tbt_h)/turn_split))
+  turn_num = num_arr*turn_split
 
-f = h5py.File(tbt_filename,'r')
-tbt_h = f['horizontal'][:]
-tbt_v = f['vertical'][:]
-time = f.attrs['Start_Time']
-f.close()
+  data_h = np.split(tbt_h[:turn_num],num_arr)
+  data_v = np.split(tbt_v[:turn_num],num_arr)
 
-turn_split = 512*16
-num_arr = int(np.floor(len(tbt_h)/turn_split))
-turn_num = num_arr*turn_split
+  full_dict_x = {'Mode_0':[],'Mode_1':[],'Mode_-1':[],
+             'Mode_2':[],'Mode_-2':[]}
+  full_dict_y = {'Mode_0':[],'Mode_1':[],'Mode_-1':[],
+             'Mode_2':[],'Mode_-2':[]}
 
-data_h = np.split(tbt_h[:turn_num],num_arr)
-data_v = np.split(tbt_v[:turn_num],num_arr)
+  for dat_h, dat_v in zip(data_h, data_v):
+    SX = calc_sussix_spectra(dat_h,dat_v,turn_split,cf.q1,cf.q2)
+    filter_SX(SX)
+    modes_x = sort_SX(SX,'x')
+    modes_y = sort_SX(SX,'y')
 
-full_dict_x = {'Mode_0':[],'Mode_1':[],'Mode_-1':[],
-           'Mode_2':[],'Mode_-2':[]}
-full_dict_y = {'Mode_0':[],'Mode_1':[],'Mode_-1':[],
-           'Mode_2':[],'Mode_-2':[]}
+    for key_x in modes_x.keys():
+      full_dict_x[key_x].append(modes_x[key_x])
 
-for dat_h, dat_v in zip(data_h, data_v):
-  SX = calc_sussix_spectra(dat_h,dat_v,turn_split,0.280,0.31)
-  filter_SX(SX)
-  modes_x = sort_SX(SX,'x')
-  modes_y = sort_SX(SX,'y')
+    for key_y in modes_y.keys():
+      full_dict_y[key_y].append(modes_y[key_y])
 
-  for key_x in modes_x.keys():
-    full_dict_x[key_x].append(modes_x[key_x])
+  hor_sus = np.zeros((num_arr,5))
+  ver_sus = np.zeros((num_arr,5))
 
-  for key_y in modes_y.keys():
-    full_dict_y[key_y].append(modes_y[key_y])
-
-hor_sus = np.zeros((num_arr,5))
-ver_sus = np.zeros((num_arr,5))
-
-for key in full_dict_x.keys():
-  mode = int(key.split('_')[1])
-  for it1, arr in enumerate(full_dict_x[key]):
-    hor_sus[it1][mode+2] = arr[1]
-  for it2, arr in enumerate(full_dict_y[key]):
-    ver_sus[it2][mode+2] = arr[1]
+  for key in full_dict_x.keys():
+    mode = int(key.split('_')[1])
+    for it1, arr in enumerate(full_dict_x[key]):
+      hor_sus[it1][mode+2] = arr[1]
+    for it2, arr in enumerate(full_dict_y[key]):
+      ver_sus[it2][mode+2] = arr[1]
 
 
 
-f = h5py.File('{:s}/{:s}_Modes_Sussix.h5'.format(output_path,beam),'w')
-f.create_dataset('Horizontal',data=hor_sus)
-f.create_dataset('Vertical',data=ver_sus)
-f.attrs['Modes']=[-2,-1,0,1,2]  
-f.attrs['Start_Time'] = time
-f.attrs['Turn_Step'] = turn_split
-f.close()
+  f = h5py.File('{:s}/{:s}_Modes_Sussix.h5'.format(output_path,beam),'w')
+  f.create_dataset('Horizontal',data=hor_sus)
+  f.create_dataset('Vertical',data=ver_sus)
+  f.attrs['Modes']=[-2,-1,0,1,2]  
+  f.attrs['Start_Time'] = time
+  f.attrs['Turn_Step'] = turn_split
+  f.close()
 
 
 

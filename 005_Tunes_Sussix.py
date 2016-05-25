@@ -34,12 +34,12 @@ def filter_SX(SX):
 
 
 
-filln = 4805
-tag = 'QDecrease'
-beam = 'B2'
+filln = 4927
+tag = ''
+beam = 'B1'
 n_lines = 20
 
-output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}_{:s}'.format(filln,tag)
+output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}'.format(filln)
 
 tbt_filename = '{:s}/TBT_{:s}.h5'.format(output_path,beam)
 
@@ -49,7 +49,7 @@ tbt_v = f['vertical'][:]
 time = f.attrs['Start_Time']
 f.close()
 
-turn_split = 512*2
+turn_split = 512*8
 num_arr = int(np.floor(len(tbt_h)/turn_split))
 turn_num = num_arr*turn_split
 
@@ -64,7 +64,7 @@ peaks_v = np.zeros((len(data_v),2,n_lines))
 
 i=0
 for dat_h, dat_v in zip(data_h, data_v):
-  SX = calc_sussix_spectra(dat_h,dat_v,turn_split,0.28,0.31)  
+  SX = calc_sussix_spectra(dat_h,dat_v,turn_split,0.31,0.32)  
   #filter_SX(SX)
   peaks_h[i,:,:] = np.array([SX.ox[:n_lines],SX.ax[:n_lines]])
   peaks_v[i,:,:] = np.array([SX.oy[:n_lines],SX.ay[:n_lines]])

@@ -8,14 +8,14 @@ import matplotlib.pyplot as plt
 import glob as glob
 import re
 import mystyle as ms
-import PySUSSIX
 
 
 
-filln = 4804
+
+filln = 4914
 beam = 'B1'
 plane = 'H'
-output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}_Inst'.format(filln)
+output_path = '/afs/cern.ch/work/l/lcarver/public/Instability_Data/{:d}_Squeeze'.format(filln)
 
 
 
@@ -53,7 +53,7 @@ turndat = turns
 
 ####MAKE FUNCTION THAT CALCULATES THE ENVELOPE
 def envelope(dat):
-  steps = 30000
+  steps = 50000
   num_of_steps = np.floor(len(dat)/steps)
   max_vals = np.zeros((num_of_steps))
   turn_vals = np.zeros((num_of_steps))
@@ -77,8 +77,8 @@ max_vals = max_vals/np.amax(max_vals)
 
 ax1.plot(turn_vals,max_vals,'go')
 
-timelow=1.0
-timehigh=1.5
+timelow=4.4
+timehigh=5.
 
 print('lll')
 
@@ -91,12 +91,12 @@ fit_turn = turn_vals[turnmask]
 
 
 def fit_exp(tfit,afit):
-  guess_tau=0.8
-  guess_off=0.1
-  guess_amp = 0.05
-  guess_phase = 0.
+  guess_tau=0.1
+  guess_off=0.05
+  guess_amp = 0.0002
+  guess_phase = timelow
 
-  data_first_guess = guess_off + guess_amp*np.exp( tfit / guess_tau - guess_phase)
+  data_first_guess = guess_off + guess_amp*np.exp( (tfit-guess_phase)/guess_tau)
 
   optimise_func = lambda x: x[0] + x[1]*np.exp(x[2]*tfit - x[3]) - afit
 
@@ -108,7 +108,7 @@ def fit_exp(tfit,afit):
 print est_off, est_amp, est_tau, est_phase
 
 time_plot = np.arange(timelow,timehigh,0.1)
-ax1.plot(time_plot,est_off + est_amp*np.exp(time_plot/est_tau - est_phase),'r',linewidth=3.,label=r'$\mathrm{{Numerical\ Fit}}\ \tau={:g}\mathrm{{\ s}}$'.format(est_tau*60))
+ax1.plot(time_plot,est_off + est_amp*np.exp((time_plot-est_phase)/est_tau),'r',linewidth=3.,label=r'$\mathrm{{Numerical\ Fit}}\ \tau={:g}\mathrm{{\ s}}$'.format(est_tau*60))
 
 #ax1.plot(turndat, coef[0]*turndat + coef[1],'b--',label=r'$\mathrm{{Numerical\ Fit}}\ \tau={:g},\ C={:g}$'.format(coef[0],coef[1]))
 ax1.set_xlabel('Time [minutes]')
@@ -116,6 +116,8 @@ ax1.set_ylabel('Amplitude')
 ax1.legend(loc=2)
 fig.suptitle('{:s}{:s} Sussix Mode Growth'.format(beam,plane),fontsize=18)
 #plot_fit()
+plt.show()
+plt.semilogy(max_vals)
 plt.show()
 
 #plt.semilogy(turn_vals,max_vals)
