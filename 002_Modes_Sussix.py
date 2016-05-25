@@ -117,7 +117,7 @@ for beam in ['B1', 'B2']:
 
 
 
-  f = h5py.File('{:s}/{:s}_Modes_Sussix.h5'.format(output_path,beam),'w')
+  f = h5py.File('{:s}/{:s}_Modes_Sussix.h5'.format(cf.output_path,beam),'w')
   f.create_dataset('Horizontal',data=hor_sus)
   f.create_dataset('Vertical',data=ver_sus)
   f.attrs['Modes']=[-2,-1,0,1,2]  
