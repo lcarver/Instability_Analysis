@@ -35,11 +35,9 @@ if plane=='H':
 else:
   dat = tbt_v
 
-turns = np.arange(0,len(dat),1)
-turndat = turns
-
-#ax1.plot(turndat[::2],dat[::2],color='r',linestyle='',marker='o',alpha=0.2,label=r'$\mathrm{{Sussix\ Mode\ }}$')
-
+turns = np.arange(0,len(dat),1)/(11245*60)
+ax1.plot(turns,dat,color='r',linestyle='-',alpha=0.2,label=r'$\mathrm{{Sussix\ Mode\ }}$')
+plt.show()
 
 #ax1.plot(turndat,dat,'ro')
 #plt.show()
@@ -47,7 +45,7 @@ turndat = turns
 #timelow = 15.5
 #timehigh = 16.9
 
-
+'''
 
 ####MAKE FUNCTION THAT CALCULATES THE ENVELOPE
 def envelope(dat):
@@ -75,53 +73,13 @@ max_vals = max_vals/np.amax(max_vals)
 
 ax1.plot(turn_vals,max_vals,'go')
 
-timelow=4.4
-timehigh=5.
-
-print('lll')
-
-turnmask = ((turn_vals > timelow) & (turn_vals < timehigh))
-
-fit_dat = max_vals[turnmask]
-fit_turn = turn_vals[turnmask]
-
-
-
-
-def fit_exp(tfit,afit):
-  guess_tau=0.1
-  guess_off=0.05
-  guess_amp = 0.0002
-  guess_phase = timelow
-
-  data_first_guess = guess_off + guess_amp*np.exp( (tfit-guess_phase)/guess_tau)
-
-  optimise_func = lambda x: x[0] + x[1]*np.exp(x[2]*tfit - x[3]) - afit
-
-  est_off, est_amp, est_tau, est_phase = leastsq(optimise_func,[guess_off, guess_amp, guess_tau, guess_phase])[0]
-  return [est_off, est_amp, est_tau, est_phase]
-
-[est_off,est_amp,est_tau, est_phase] = fit_exp(turndat,dat)
-#[est_off,est_amp,est_tau] = [1,15/60,1]
-print est_off, est_amp, est_tau, est_phase
-
-time_plot = np.arange(timelow,timehigh,0.1)
-ax1.plot(time_plot,est_off + est_amp*np.exp((time_plot-est_phase)/est_tau),'r',linewidth=3.,label=r'$\mathrm{{Numerical\ Fit}}\ \tau={:g}\mathrm{{\ s}}$'.format(est_tau*60))
-
 #ax1.plot(turndat, coef[0]*turndat + coef[1],'b--',label=r'$\mathrm{{Numerical\ Fit}}\ \tau={:g},\ C={:g}$'.format(coef[0],coef[1]))
 ax1.set_xlabel('Time [minutes]')
 ax1.set_ylabel('Amplitude')
 ax1.legend(loc=2)
-fig.suptitle('{:s}{:s} Sussix Mode Growth'.format(beam,plane),fontsize=18)
-#plot_fit()
-plt.show()
-plt.semilogy(max_vals)
 plt.show()
 
-#plt.semilogy(turn_vals,max_vals)
-#plt.show()
-
-
+'''
 
 
 

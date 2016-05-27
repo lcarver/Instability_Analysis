@@ -18,9 +18,20 @@ else:
 if not os.path.exists(cf.output_path):
   os.mkdir(cf.output_path)
 
+def append_vals_tups(tup_val):
+  max_len = 0
+  for tup in tup_val:
+    ll = len(tup)
+    if ll > max_len:
+      max_len = ll
+  
+  for tup in tup_val:
+    while len(tup) < max_len:
+      tup.extend([0])      
+  return tup_val
 
 for beam in ['B1','B2']: 
-
+  '''
   var = 'LHC.BQBBQ.CONTINUOUS_HS.{:s}:ACQ_DATA_{:s}'.format(beam,'H')
   d=mdb.get(var, cf.t1, cf.t2)
   f = h5py.File('{:s}/TBT_{:s}.h5'.format(cf.output_path, beam),'w')
@@ -44,7 +55,7 @@ for beam in ['B1','B2']:
   f.attrs['Start_Time_Str'] = cf.t1
   f.attrs['Fill'] = cf.filln
   f.close()
-
+  '''
   if beam=='B1':
     bsrt_var = ['LHC.BSRT.5R4.B1:GATE_DELAY',
                 'LHC.BSRT.5R4.B1:FIT_SIGMA_H',
@@ -58,7 +69,7 @@ for beam in ['B1','B2']:
   gate_delay_dat = mdb.get(gate_delay_var, cf.t1, cf.t2)[gate_delay_var]
   filled_buckets = np.array(list(set([item for sublist in gate_delay_dat[1] for item in sublist]
 )))
-  filled_buckets = [int(i) for i in filled_buckets]
+  filled_buckets = sorted([int(i) for i in filled_buckets])
   sigma_h_var = bsrt_var[1]
   sigma_h_dat = mdb.get(sigma_h_var, cf.t1, cf.t2)[sigma_h_var]
 
@@ -69,7 +80,7 @@ for beam in ['B1','B2']:
   for bucket in filled_buckets:
 
     bucket_dict = {}
-    time_dat = sigma_h_dat[0]
+    time_dat = []
     sigma_h = []
     sigma_v = []
     std_h = []
@@ -79,10 +90,16 @@ for beam in ['B1','B2']:
       mask = gate == bucket  
       dat_h = sigma_h_dat[1][i][mask]
       dat_v = sigma_v_dat[1][i][mask]
-      std_h.extend([np.std(dat_h)])
-      std_v.extend([np.std(dat_v)])
-      sigma_h.extend([np.mean(dat_h)])
-      sigma_v.extend([np.mean(dat_v)])
+      if len(dat_h)==0:
+        pass
+      elif len(dat_v)==0:
+        pass        
+      else:
+        time_dat.extend([sigma_h_dat[0][i]])
+        std_h.extend([np.std(dat_h)])
+        std_v.extend([np.std(dat_v)])
+        sigma_h.extend([np.mean(dat_h)])
+        sigma_v.extend([np.mean(dat_v)])
 
     bucket_dict['time_stamps'] = time_dat
     bucket_dict['std_h'] = std_h
@@ -95,20 +112,32 @@ for beam in ['B1','B2']:
   f = h5py.File('{:s}/BSRT_{:s}.h5'.format(cf.output_path, beam),'w')
   f.attrs['Buckets'] = filled_buckets
   f.attrs['Time_Start_STR'] = cf.t1
-  f.create_dataset('Time_Stamps', data=bsrt_data[bsrt_data.keys()[0]]['time_stamps'])
+
 
   tup_h = []
   tup_v = []
   tup_sh = []
   tup_sv = []
+  tup_t = []
+ 
   for key in bsrt_data.keys():
+    tup_t.append(bsrt_data[key]['time_stamps'])
     tup_h.append(bsrt_data[key]['sigma_h'])
     tup_v.append(bsrt_data[key]['sigma_v'])
     tup_sh.append(bsrt_data[key]['std_h'])
     tup_sv.append(bsrt_data[key]['std_v'])
 
-  f.attrs['Start_Time_Str'] = cf.t1
+  tup_t = append_vals_tups(tup_t)
+  tup_v = append_vals_tups(tup_v)
+  tup_h = append_vals_tups(tup_h)
+  tup_sv = append_vals_tups(tup_sv)
+  tup_sh= append_vals_tups(tup_sh)
+
+
+
+  f.attrs['Start_Time'] = gate_delay_dat[0][0]
   f.attrs['Fill'] = cf.filln
+  f.create_dataset('Time_Stamps', data=np.vstack(tuple(tup_t)).T)
   f.create_dataset('sigma_h', data=np.vstack(tuple(tup_h)).T)
   f.create_dataset('sigma_v', data=np.vstack(tuple(tup_v)).T)
   f.create_dataset('std_h', data=np.vstack(tuple(tup_sh)).T)
@@ -117,7 +146,6 @@ for beam in ['B1','B2']:
   print('{:s} is finished!'.format(beam))
   
   
- 
 
 
 
